@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:math';
 
 void main() {
@@ -14,7 +15,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Flutter Custom Painter',
         theme: ThemeData(primarySwatch: Colors.green),
-        home: const MyPainter());
+        home: buildCanvasContainer());
+  }
+
+  Widget buildCanvasContainer() {
+    return const Scaffold(
+        body: SafeArea(
+      child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+        Expanded(child: MyPainter()),
+      ]),
+    ));
   }
 }
 
@@ -26,57 +36,35 @@ class MyPainter extends StatefulWidget {
 
 class _MyPainterState extends State<MyPainter>
     with SingleTickerProviderStateMixin {
-  var _sides = 5.0;
+  int _dt = 0;
   double _t = 0;
-  late AnimationController controller;
-  //late Animation<double> animation;
+  Duration _elapsed = Duration.zero;
+  late final Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
-    controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 100))
-          ..addListener(() {
-            setState(() {});
-            _t += 0.1; // my logic
-          });
-    controller.forward();
+    _ticker = createTicker((elapsed) {
+      setState(() {});
+      _dt = (elapsed - _elapsed).inMilliseconds;
+      _elapsed = elapsed;
+      _t += 0.005 * _dt; // my rotation here
+    });
+    _ticker.start();
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    _ticker.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-              child: CustomPaint(
-            painter: ShapePainter(_sides, 100, _t),
-            child: Container(),
-          )),
-          // const Padding(
-          //     padding: EdgeInsets.only(left: 24.0), child: Text('Sides')),
-          // Slider(
-          //   value: _sides,
-          //   min: 3.0,
-          //   max: 10.0,
-          //   label: 'toto',
-          //   onChanged: (value) {
-          //     setState(() {
-          //       _sides = value;
-          //     });
-          //   },
-          // )
-        ],
-      ),
-    ));
+    return CustomPaint(
+      painter: ShapePainter(7, 100, _t),
+      child: Container(),
+    );
   }
 }
 
