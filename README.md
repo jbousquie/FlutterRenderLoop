@@ -32,6 +32,10 @@ void main() {
 Check an example in the `main.dart` file of this repo.
 
 ```dart
+import 'package:flutter/material.dart';
+import 'renderloop.dart';
+import 'dart:math';
+
 class MyScene extends GameScene {
   MyScene({dynamic key});
   // My game initial State
