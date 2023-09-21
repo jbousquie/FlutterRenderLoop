@@ -1,16 +1,45 @@
-# animation_tuto
+#  Flutter Minimal Render Loop
 
-A new Flutter project.
+  
 
-## Getting Started
+Open a new file `main.dart`
 
-This project is a starting point for a Flutter application.
+Import here at least `material.dart` in order to get the canvas drawing methods and import the file `renderloop.dart`
 
-A few resources to get you started if this is your first Flutter project:
+Then create your own class extending `GameScene`, say, class `MysScene`.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+In this class, declare all your instance variables that describe the game state.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Then implement the method `render(Canvas canvas, Size size, int dt)` overriding the `render()` GameScene method.
+
+This `render()` method is called each frame and is passed :
+
+-  the canvas in which the drawing is done
+
+-  the size of this canvas
+
+-  the delta time dt between this frame and the previous one as an integer in milliseconds
+
+  
+
+Initialization :
+
+1 - Create an object from your `GameScene` extended class.
+
+2 - Create a game object with this scene :
+
+3 - Run the game
+
+  
+```code
+void main() {
+
+GameScene scene = MyScene();
+
+Game game = Game(scene);
+
+game.run();
+
+}
+```
+
