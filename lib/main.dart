@@ -35,10 +35,30 @@ class MyScene extends GameScene {
   double scale = 1.0; // current radius scaling
   double scaledRadius = 0;
   double width = 0;
+  double t = 0;
+
+  Shape triangle = Shape.triangle();
+
+  Paint shapePaint = Paint()..color = Colors.blueAccent;
 
   // Called each frame
   @override
   void render(Canvas canvas, Size size, int dt) {
+    //renderPolygon(canvas, size, dt);
+    renderShape(canvas, size, shapePaint, dt);
+  }
+
+  void renderShape(Canvas canvas, Size size, Paint paint, int dt) {
+    t += 0.001 * dt;
+    triangle.position.x = size.width * 0.5;
+    triangle.position.y = size.height * 0.5;
+    triangle.scaling.x = 100;
+    triangle.scaling.y = 100;
+    triangle.rotation = t;
+    triangle.render(canvas, paint);
+  }
+
+  void renderPolygon(Canvas canvas, Size size, int dt) {
     // update the shape rotation and scaling
     radians += 0.003 * dt;
     scale = cos(radians) + 2.0;
