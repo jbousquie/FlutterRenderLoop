@@ -37,7 +37,7 @@ class MyScene extends GameScene {
   double width = 0;
   double t = 0;
 
-  Shape triangle = Shape.triangle();
+  Shape shape = Shape.polygon(7);
 
   Paint shapePaint = Paint()..color = Colors.blueAccent;
 
@@ -50,12 +50,13 @@ class MyScene extends GameScene {
 
   void renderShape(Canvas canvas, Size size, Paint paint, int dt) {
     t += 0.001 * dt;
-    triangle.position.x = size.width * 0.5;
-    triangle.position.y = size.height * 0.5;
-    triangle.scaling.x = 100;
-    triangle.scaling.y = 100;
-    triangle.rotation = t;
-    triangle.render(canvas, paint);
+    double sint = sin(t);
+    shape.position.x = size.width * 0.5;
+    shape.position.y = size.height * 0.5;
+    shape.scaling.x = 100 + 50 * sint;
+    shape.scaling.y = 100 + 50 * sint;
+    shape.rotation = t;
+    shape.render(canvas, paint);
   }
 
   void renderPolygon(Canvas canvas, Size size, int dt) {
@@ -76,7 +77,8 @@ class MyScene extends GameScene {
     var angle = pi * 2 / sides;
 
     Offset center = Offset(size.width / 2, size.height / 2);
-    Offset startPoint = Offset(scaledRadius * cos(0.0), scaledRadius * sin(0.0));
+    Offset startPoint =
+        Offset(scaledRadius * cos(0.0), scaledRadius * sin(0.0));
     path.moveTo(startPoint.dx + center.dx, startPoint.dy + center.dy);
     for (int i = 1; i <= sides; i++) {
       double x = scaledRadius * cos(angle * i) + center.dx;

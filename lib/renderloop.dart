@@ -102,8 +102,36 @@ class Geometry {
   // Named Constructors
   Geometry.triangle() {
     double h = sqrt(3) / 6;
-    positions = Float32List.fromList([-0.5, -h, 0.5, -h, 0, sqrt(3) / 3]);
+    positions = Float32List.fromList([-0.5, h, 0.5, h, 0, -sqrt(3) / 3]);
     indices = Uint16List.fromList([0, 1, 2]);
+  }
+
+  Geometry.quad() {
+    positions =
+        Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
+    indices = Uint16List.fromList([1, 0, 3, 2, 3, 1]);
+  }
+
+  Geometry.polygon(int sides) {
+    double radius = 0.5;
+    double step = pi * 2 / sides;
+    List<double> pos = [0.0, 0.0];
+    List<int> ind = [];
+    int i = 0;
+    for (i = 0; i < sides; i++) {
+      double x = radius * cos(i * step);
+      double y = radius * sin(i * step);
+      pos.add(x);
+      pos.add(y);
+    }
+    for (i = 0; i < sides; i++) {
+      ind.add(0);
+      ind.add(i);
+      ind.add(i + 1);
+    }
+    ind.addAll([0, sides, 1]);
+    positions = Float32List.fromList(pos);
+    indices = Uint16List.fromList(ind);
   }
 }
 
@@ -126,7 +154,8 @@ class Shape {
 
   void render(Canvas canvas, Paint paint) {
     transform();
-    _vertexData = Vertices.raw(vertexMode, _positions);
+    _vertexData =
+        Vertices.raw(vertexMode, _positions, indices: geometry.indices);
     canvas.drawVertices(_vertexData, blendMode, paint);
   }
 
@@ -152,6 +181,14 @@ class Shape {
   // Named Constructors
   Shape.triangle() {
     geometry = Geometry.triangle();
+    _positions = Float32List.fromList(geometry.positions);
+  }
+  Shape.quad() {
+    geometry = Geometry.quad();
+    _positions = Float32List.fromList(geometry.positions);
+  }
+  Shape.polygon(int sides) {
+    geometry = Geometry.polygon(sides);
     _positions = Float32List.fromList(geometry.positions);
   }
 }
