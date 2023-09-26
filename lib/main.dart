@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'renderloop.dart';
 import 'dart:math';
+import 'renderloop.dart';
+import 'shape.dart';
 
 /* 
 Import here at least material.dart in order to get the canvas drawing methods and import the the file renderloop.dart
@@ -27,7 +28,6 @@ void main() {
 */
 
 class MyScene extends GameScene {
-  MyScene({dynamic key});
   // My game initial State
   double radius = 50;
   double sides = 7;
@@ -36,10 +36,25 @@ class MyScene extends GameScene {
   double scaledRadius = 0;
   double width = 0;
   double t = 0;
-
-  Shape shape = Shape.polygon(7);
-
   Paint shapePaint = Paint()..color = Colors.blueAccent;
+  late Shape shape;
+
+  MyScene({dynamic key}) {
+    int width = 20;
+    int height = 5;
+    List<List<double>> pathList = [];
+    double x0 = -20;
+    double y0 = 10;
+    for (int j = 0; j < height; j++) {
+      List<double> path = [];
+      for (int i = 0; i < width; i++) {
+        path.add(x0 + 2 * i);
+        path.add(y0 - 3 * (j + 1) * (1 + sin(i * 0.2)));
+      }
+      pathList.add(path);
+    }
+    shape = Shape.ribbon(pathList);
+  }
 
   // Called each frame
   @override
@@ -53,8 +68,8 @@ class MyScene extends GameScene {
     double sint = sin(t);
     shape.position.x = size.width * 0.5;
     shape.position.y = size.height * 0.5;
-    shape.scaling.x = 100 + 50 * sint;
-    shape.scaling.y = 100 + 50 * sint;
+    shape.scaling.x = 10 + 5 * sint;
+    shape.scaling.y = 10 + 5 * sint;
     shape.rotation = t;
     shape.render(canvas, paint);
   }
