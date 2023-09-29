@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart' as material;
+import 'package:vector_math/vector_math_64.dart';
 import 'dart:math';
 import 'renderloop.dart';
 import 'shape.dart';
@@ -29,84 +32,83 @@ void main() {
 
 class MyScene extends GameScene {
   // My game initial State
-  double radius = 50;
+  double radius = 20;
   double sides = 7;
   double radians = 0; // current shape rotation
   double scale = 1.0; // current radius scaling
   double scaledRadius = 0;
   double width = 0;
   double t = 0;
-  Paint shapePaint = Paint()..color = Colors.blueAccent;
-  late Shape shape;
+  material.Paint shapePaint = material.Paint()..color = material.Colors.blueAccent;
+  List<Shape> shapes = [];
+  List<Vector2> velocities = [];
+
+  Shape globalShape = Shape();
+  List<double> pos = [];
+  List<int> ind = [];
 
   MyScene({dynamic key}) {
-    int width = 20;
-    int height = 5;
-    List<List<double>> pathList = [];
-    double x0 = -20;
-    double y0 = 10;
-    for (int j = 0; j < height; j++) {
-      List<double> path = [];
-      for (int i = 0; i < width; i++) {
-        path.add(x0 + 2 * i);
-        path.add(y0 - 3 * (j + 1) * (1 + sin(i * 0.2)));
+    int nb = 10000;
+    double speedX = 0.8;
+    double speedY = 15;
+    double width = 2000;
+
+    int sz = 0;
+    for (int i = 0; i < nb; i++) {
+      Vector2 velocity = Vector2(Random().nextDouble() * speedX, Random().nextDouble() * speedY + 2);
+      velocities.add(velocity);
+      Shape shape = Shape.polygon(5);
+      shape.position.x = Random().nextDouble() * width;
+      double scl = radius - (radius * 0.3 * Random().nextDouble());
+      shape.scaling.x = scl - Random().nextDouble() * 5;
+      shape.scaling.y = scl;
+      shape.rotation = Random().nextDouble();
+      shapes.add(shape);
+      pos.addAll(shape.geometry.positions);
+      for (int idx = 0; idx < shape.geometry.indices.length; idx++) {
+        ind.add(shape.geometry.indices[idx] + sz);
       }
-      pathList.add(path);
+      sz += (shape.geometry.positions.length * 0.5).toInt();
     }
-    shape = Shape.ribbon(pathList);
+    globalShape.geometry = Geometry();
+    globalShape.geometry.indices = Uint16List.fromList(ind);
+    globalShape.geometry.positions = Float32List.fromList(pos);
+    globalShape.positions = Float32List.fromList(pos);
   }
 
   // Called each frame
   @override
-  void render(Canvas canvas, Size size, int dt) {
-    //renderPolygon(canvas, size, dt);
+  void render(material.Canvas canvas, material.Size size, int dt) {
     renderShape(canvas, size, shapePaint, dt);
   }
 
-  void renderShape(Canvas canvas, Size size, Paint paint, int dt) {
-    t += 0.001 * dt;
-    double sint = sin(t);
-    shape.position.x = size.width * 0.5;
-    shape.position.y = size.height * 0.5;
-    shape.scaling.x = 10 + 5 * sint;
-    shape.scaling.y = 10 + 5 * sint;
-    shape.rotation = t;
-    shape.render(canvas, paint);
-  }
+  void renderShape(material.Canvas canvas, material.Size size, material.Paint paint, int dt) {
+    t += 0.01 * dt;
+    int j = 0;
+    //pos = [];
+    for (int i = 0; i < shapes.length; i++) {
+      Shape shape = shapes[i];
+      Vector2 vel = velocities[i];
+      double sint = sin(t + i);
 
-  void renderPolygon(Canvas canvas, Size size, int dt) {
-    // update the shape rotation and scaling
-    radians += 0.003 * dt;
-    scale = cos(radians) + 2.0;
-    scaledRadius = radius * scale;
-    width = 2 + sin(radians * 0.1) * 15;
-
-    // draw the shape
-    var paint = Paint()
-      ..color = Colors.teal
-      ..strokeWidth = width
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    var path = Path();
-    var angle = pi * 2 / sides;
-
-    Offset center = Offset(size.width / 2, size.height / 2);
-    Offset startPoint =
-        Offset(scaledRadius * cos(0.0), scaledRadius * sin(0.0));
-    path.moveTo(startPoint.dx + center.dx, startPoint.dy + center.dy);
-    for (int i = 1; i <= sides; i++) {
-      double x = scaledRadius * cos(angle * i) + center.dx;
-      double y = scaledRadius * sin(angle * i) + center.dy;
-      path.lineTo(x, y);
+      shape.position.x += vel.x * sint;
+      shape.position.y += vel.y;
+      if (shape.position.y > size.height) {
+        shape.position.x = size.width * Random().nextDouble();
+        shape.position.y = 0;
+      }
+      double p = i % 2 == 0 ? -1 : 1;
+      shape.rotation += dt * 0.01 * p;
+      shape.transform();
+      for (int t = 0; t < shape.positions.length; t++) {
+        globalShape.positions[t + j] = shape.positions[t];
+      }
+      //pos.addAll(shape.positions);
+      j += shape.positions.length;
+      //shape.render(canvas, paint);
     }
-    path.close();
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(radians);
-    canvas.translate(-center.dx, -center.dy);
-    canvas.drawPath(path, paint);
-    canvas.restore();
+    //globalShape.positions = Float32List.fromList(pos);
+    globalShape.render(canvas, paint);
   }
 }
 

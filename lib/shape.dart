@@ -18,8 +18,7 @@ class Geometry {
   }
 
   Geometry.quad() {
-    positions =
-        Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
+    positions = Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
     indices = Uint16List.fromList([1, 0, 3, 2, 3, 1]);
   }
 
@@ -38,7 +37,7 @@ class Geometry {
       pos.add(x);
       pos.add(y);
     }
-    for (i = 0; i < sides; i++) {
+    for (i = 1; i < sides; i++) {
       ind.add(0);
       ind.add(i);
       ind.add(i + 1);
@@ -84,10 +83,17 @@ class Shape {
 
   Paint paint = Paint();
 
+  Float32List get positions {
+    return _positions;
+  }
+
+  set positions(Float32List value) {
+    _positions = value;
+  }
+
   void render(Canvas canvas, Paint paint) {
-    transform();
-    _vertexData =
-        Vertices.raw(vertexMode, _positions, indices: geometry.indices);
+    //transform();
+    _vertexData = Vertices.raw(vertexMode, _positions, indices: geometry.indices);
     canvas.drawVertices(_vertexData, blendMode, paint);
   }
 
@@ -104,8 +110,8 @@ class Shape {
     for (int i = 0; i < length; i += 2) {
       double geoPosX = geoPos[i];
       double geoPosY = geoPos[i + 1];
-      _positions[i] = (geoPosX * cosA + geoPosY * sinA) * sx + x;
-      _positions[i + 1] = (geoPosY * cosA - geoPosX * sinA) * sy + y;
+      _positions[i] = geoPosX * cosA * sx + geoPosY * sinA * sy + x;
+      _positions[i + 1] = geoPosY * cosA * sy - geoPosX * sinA * sx + y;
     }
     return this;
   }
