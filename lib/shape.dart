@@ -18,7 +18,8 @@ class Geometry {
   }
 
   Geometry.quad() {
-    positions = Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
+    positions =
+        Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
     indices = Uint16List.fromList([1, 0, 3, 2, 3, 1]);
   }
 
@@ -71,29 +72,24 @@ class Shape {
   Vector3 position = Vector3.zero(); // z for drawing priority
   double rotation = 0;
   Vector2 scaling = Vector2(1, 1);
-  Int32List color = Int32List.fromList([255, 0, 255, 0]);
+  late Int32List colors;
+  late Float32List uvs;
+  static Color defaultColor = const Color.fromARGB(128, 50, 128, 255);
 
   late Geometry geometry;
-  late Float32List _positions; // computed positions
+  late Float32List positions; // computed positions
   late Vertices _vertexData;
 
   static const vertexMode = VertexMode.triangles;
-  //static const blendMode = BlendMode.srcOver;
-  static const blendMode = BlendMode.dst;
+  static const blendMode = BlendMode.srcOver;
+  //static const blendMode = BlendMode.plus;
 
   Paint paint = Paint();
 
-  Float32List get positions {
-    return _positions;
-  }
-
-  set positions(Float32List value) {
-    _positions = value;
-  }
-
   void render(Canvas canvas, Paint paint) {
     //transform();
-    _vertexData = Vertices.raw(vertexMode, _positions, indices: geometry.indices);
+    _vertexData = Vertices.raw(vertexMode, positions,
+        indices: geometry.indices, colors: colors);
     canvas.drawVertices(_vertexData, blendMode, paint);
   }
 
@@ -106,32 +102,54 @@ class Shape {
     double cosA = cos(rotation);
     double sinA = sin(rotation);
     Float32List geoPos = geometry.positions;
-    int length = _positions.length;
+    int length = positions.length;
     for (int i = 0; i < length; i += 2) {
       double geoPosX = geoPos[i];
       double geoPosY = geoPos[i + 1];
-      _positions[i] = geoPosX * cosA * sx + geoPosY * sinA * sy + x;
-      _positions[i + 1] = geoPosY * cosA * sy - geoPosX * sinA * sx + y;
+      positions[i] = geoPosX * cosA * sx + geoPosY * sinA * sy + x;
+      positions[i + 1] = geoPosY * cosA * sy - geoPosX * sinA * sx + y;
     }
     return this;
+  }
+
+  Int32List generateDefaultColors(Float32List positions) {
+    int colorNb = (positions.length * 0.5).toInt();
+    int defColor = defaultColor.value;
+    Int32List colors = Int32List(colorNb);
+    for (int i = 0; i < colorNb; i++) {
+      colors[i] = defColor;
+    }
+    return colors;
+  }
+
+  // Sets the shape's vertex color from a list of color objects from dart:ui
+  setColorsFrom(List<Color> colorList) {
+    int l = colorList.length;
+    for (int i = 0; i < l; i++) {
+      colors[i] = colorList[i].value;
+    }
   }
 
   // Named Constructors
   Shape.triangle() {
     geometry = Geometry.triangle();
-    _positions = Float32List.fromList(geometry.positions);
+    positions = Float32List.fromList(geometry.positions);
+    colors = generateDefaultColors(positions);
   }
   Shape.quad() {
     geometry = Geometry.quad();
-    _positions = Float32List.fromList(geometry.positions);
+    positions = Float32List.fromList(geometry.positions);
+    colors = generateDefaultColors(positions);
   }
   Shape.polygon(int sides) {
     geometry = Geometry.polygon(sides);
-    _positions = Float32List.fromList(geometry.positions);
+    positions = Float32List.fromList(geometry.positions);
+    colors = generateDefaultColors(positions);
   }
 
   Shape.ribbon(List<List<double>> pathArray) {
     geometry = Geometry.ribbon(pathArray);
-    _positions = Float32List.fromList(geometry.positions);
+    positions = Float32List.fromList(geometry.positions);
+    colors = generateDefaultColors(positions);
   }
 }
