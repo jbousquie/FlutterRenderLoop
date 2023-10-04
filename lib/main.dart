@@ -1,11 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart' as material;
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'dart:math';
 import 'dart:ui';
 import 'renderloop.dart';
 import 'shape.dart';
+import 'dart:async';
 
 /* 
 Import here at least material.dart in order to get the canvas drawing methods and import the the file renderloop.dart
@@ -28,6 +31,8 @@ void main() {
   game.run();
 }
 
+Image Shader
+https://getstream.io/blog/definitive-flutter-painting-guide/
 
 */
 
@@ -40,8 +45,10 @@ class MyScene extends GameScene {
   double scaledRadius = 0;
   double width = 0;
   double t = 0;
-  material.Paint shapePaint = material.Paint()
-    ..color = material.Colors.blueAccent;
+  late material.Paint shapePaint;
+
+  // material.Paint shapePaint = material.Paint()
+  //   ..color = material.Colors.blueAccent;
   List<Shape> shapes = [];
   List<Vector2> velocities = [];
 
@@ -49,7 +56,8 @@ class MyScene extends GameScene {
   List<double> pos = [];
   List<int> ind = [];
 
-  MyScene({dynamic key}) {
+  MyScene(Paint paint, {dynamic key}) {
+    shapePaint = paint;
     int nb = 10;
     double speedX = 0.8;
     double speedY = 15;
@@ -124,8 +132,25 @@ class MyScene extends GameScene {
   }
 }
 
+Future<Shader> loadAssets() async {
+  String fileName = 'images/AtariLogo.jpg';
+  File file = File(fileName);
+  final imageData = FileImage(file);
+  // final Codec codec =
+  //     await instantiateImageCodec(imageData.buffer.asUint8List());
+  // final FrameInfo frm = await codec.getNextFrame();
+  // final img = frm.image;
+  final img = imageData;
+  final ImageShader imgShader = ImageShader(
+      img, TileMode.mirror, TileMode.mirror, Matrix4.identity().storage);
+  return imgShader;
+}
+
 void main() {
-  GameScene scene = MyScene();
+  Shader imgShader = loadAssets() as Shader;
+  Paint paint = material.Paint()..shader = imgShader;
+  //..color = material.Colors.blueAccent;
+  GameScene scene = MyScene(paint);
   Game game = Game(scene);
   game.run();
 }

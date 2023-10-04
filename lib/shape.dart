@@ -135,16 +135,19 @@ class Shape {
     geometry = Geometry.triangle();
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
+    uvs = Float32List.fromList(geometry.positions);
   }
   Shape.quad() {
     geometry = Geometry.quad();
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
+    uvs = Float32List.fromList(geometry.positions);
   }
   Shape.polygon(int sides) {
     geometry = Geometry.polygon(sides);
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
+    uvs = Float32List.fromList(geometry.positions);
   }
 
   Shape.ribbon(List<List<double>> pathArray) {
