@@ -18,8 +18,7 @@ class Geometry {
   }
 
   Geometry.quad() {
-    positions =
-        Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
+    positions = Float32List.fromList([-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5]);
     indices = Uint16List.fromList([1, 0, 3, 2, 3, 1]);
   }
 
@@ -88,8 +87,10 @@ class Shape {
 
   void render(Canvas canvas, Paint paint) {
     //transform();
-    _vertexData = Vertices.raw(vertexMode, positions,
-        indices: geometry.indices, colors: colors);
+    _vertexData = Vertices.raw(
+      vertexMode, positions, indices: geometry.indices, colors: colors,
+      //textureCoordinates: uvs
+    );
     canvas.drawVertices(_vertexData, blendMode, paint);
   }
 
@@ -125,9 +126,46 @@ class Shape {
   // Sets the shape's vertex color from a list of color objects from dart:ui
   setColorsFrom(List<Color> colorList) {
     int l = colorList.length;
+    int t = colors.length;
     for (int i = 0; i < l; i++) {
-      colors[i] = colorList[i].value;
+      if (i < t) {
+        colors[i] = colorList[i].value;
+      }
     }
+  }
+
+  Float32List generateDefaultUvs(Float32List positions) {
+    int l = positions.length;
+    Float32List defaultUV = Float32List(l);
+    double minX = double.infinity;
+    double maxX = -double.infinity;
+    double minY = double.infinity;
+    double maxY = -double.infinity;
+    for (var i = 0; i < l; i += 2) {
+      double x = positions[i];
+      double y = positions[i + 1];
+      minX = min(minX, x);
+      maxX = max(maxX, x);
+      minY = min(minY, y);
+      maxY = max(maxY, y);
+    }
+    double w = maxX - minX;
+    double h = maxY - minY;
+    if (w == 0) {
+      w = 1;
+    }
+    if (h == 0) {
+      h = 1;
+    }
+    for (var j = 0; j < l; j += 2) {
+      double x = positions[j];
+      double y = positions[j + 1];
+      x = (x - minX) / w;
+      y = (y - minY) / h;
+      defaultUV[j] = x;
+      defaultUV[j + 1] = y;
+    }
+    return defaultUV;
   }
 
   // Named Constructors
@@ -135,24 +173,25 @@ class Shape {
     geometry = Geometry.triangle();
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
-    uvs = Float32List.fromList(geometry.positions);
+    uvs = generateDefaultUvs(positions);
   }
   Shape.quad() {
     geometry = Geometry.quad();
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
-    uvs = Float32List.fromList(geometry.positions);
+    uvs = generateDefaultUvs(positions);
   }
   Shape.polygon(int sides) {
     geometry = Geometry.polygon(sides);
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
-    uvs = Float32List.fromList(geometry.positions);
+    uvs = generateDefaultUvs(positions);
   }
 
   Shape.ribbon(List<List<double>> pathArray) {
     geometry = Geometry.ribbon(pathArray);
     positions = Float32List.fromList(geometry.positions);
     colors = generateDefaultColors(positions);
+    uvs = generateDefaultUvs(positions);
   }
 }

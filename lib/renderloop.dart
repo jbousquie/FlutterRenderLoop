@@ -5,7 +5,9 @@ import 'package:flutter/scheduler.dart';
 
 class GameWidget extends StatefulWidget {
   final GameScene scene;
-  const GameWidget(this.scene, {super.key});
+  GameWidget(this.scene, {super.key}) {
+    runApp(this);
+  }
 
   @override
   State createState() => GameState();
@@ -15,15 +17,18 @@ class GameState extends State<GameWidget> with SingleTickerProviderStateMixin {
   int _dt = 0;
   Duration _elapsed = Duration.zero;
   late final Ticker _ticker;
+  late bool _started;
 
   // Game Loop
   @override
   void initState() {
     super.initState();
+    _started = false;
     _ticker = createTicker((elapsed) {
       setState(() {});
       _dt = (elapsed - _elapsed).inMilliseconds;
       _elapsed = elapsed;
+      _started = widget.scene.started;
     });
     _ticker.start();
   }
@@ -54,11 +59,14 @@ class GameState extends State<GameWidget> with SingleTickerProviderStateMixin {
   }
 
   Widget buildCanvasPainter(BuildContext context) {
-    return CustomPaint(
-      //willChange: true,
-      painter: ScenePainter(widget.scene, _dt),
-      child: Container(),
-    );
+    if (_started) {
+      return CustomPaint(
+        //willChange: true,
+        painter: ScenePainter(widget.scene, _dt),
+        child: Container(),
+      );
+    }
+    return const CustomPaint();
   }
 }
 
@@ -79,16 +87,26 @@ class ScenePainter extends CustomPainter {
 }
 
 class Game extends GameWidget {
-  const Game(GameScene scene, {super.key}) : super(scene);
-  void run() {
-    runApp(this);
+  Game(GameScene scene, {super.key}) : super(scene);
+
+  void start() {
+    scene.start();
   }
 }
 
 class GameScene {
-  const GameScene();
+  bool started = false;
+  GameScene();
 
   void render(Canvas canvas, Size size, int dt) {
     //
+  }
+
+  void loadAssets() {
+    //
+  }
+
+  void start() {
+    started = true;
   }
 }

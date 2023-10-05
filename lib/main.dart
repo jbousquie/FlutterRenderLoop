@@ -38,7 +38,7 @@ https://getstream.io/blog/definitive-flutter-painting-guide/
 
 class MyScene extends GameScene {
   // My game initial State
-  double radius = 200;
+  double radius = 300;
   double sides = 7;
   double radians = 0; // current shape rotation
   double scale = 1.0; // current radius scaling
@@ -46,7 +46,7 @@ class MyScene extends GameScene {
   double width = 0;
   double t = 0;
   late material.Paint shapePaint;
-
+  late Shader imgShader;
   // material.Paint shapePaint = material.Paint()
   //   ..color = material.Colors.blueAccent;
   List<Shape> shapes = [];
@@ -56,17 +56,27 @@ class MyScene extends GameScene {
   List<double> pos = [];
   List<int> ind = [];
 
-  MyScene(Paint paint, {dynamic key}) {
-    shapePaint = paint;
-    int nb = 10;
+  @override
+  Future loadAssets() async {
+    String fileName = 'images/AtariLogo.jpg';
+    final imageData = await rootBundle.load(fileName);
+    final Codec codec = await instantiateImageCodec(imageData.buffer.asUint8List());
+    final FrameInfo frm = await codec.getNextFrame();
+    final img = frm.image;
+    imgShader = ImageShader(img, TileMode.repeated, TileMode.repeated, Matrix4.rotationZ(pi / 2).storage);
+    shapePaint = material.Paint()..shader = imgShader;
+    //..color = material.Colors.blueAccent;
+  }
+
+  MyScene({dynamic key}) {
+    int nb = 20;
     double speedX = 0.8;
     double speedY = 15;
     double width = 2000;
 
     int sz = 0;
     for (int i = 0; i < nb; i++) {
-      Vector2 velocity = Vector2(
-          Random().nextDouble() * speedX, Random().nextDouble() * speedY + 2);
+      Vector2 velocity = Vector2(Random().nextDouble() * speedX, Random().nextDouble() * speedY + 2);
       velocities.add(velocity);
       Shape shape = Shape.polygon(5);
       List<Color> shapeColors = [
@@ -99,11 +109,10 @@ class MyScene extends GameScene {
   // Called each frame
   @override
   void render(material.Canvas canvas, material.Size size, int dt) {
-    renderShape(canvas, size, shapePaint, dt);
+    renderShapes(canvas, size, shapePaint, dt);
   }
 
-  void renderShape(material.Canvas canvas, material.Size size,
-      material.Paint paint, int dt) {
+  void renderShapes(material.Canvas canvas, material.Size size, material.Paint paint, int dt) {
     t += 0.01 * dt;
     int j = 0;
     //pos = [];
@@ -132,25 +141,9 @@ class MyScene extends GameScene {
   }
 }
 
-Future<Shader> loadAssets() async {
-  String fileName = 'images/AtariLogo.jpg';
-  File file = File(fileName);
-  final imageData = FileImage(file);
-  // final Codec codec =
-  //     await instantiateImageCodec(imageData.buffer.asUint8List());
-  // final FrameInfo frm = await codec.getNextFrame();
-  // final img = frm.image;
-  final img = imageData;
-  final ImageShader imgShader = ImageShader(
-      img, TileMode.mirror, TileMode.mirror, Matrix4.identity().storage);
-  return imgShader;
-}
-
 void main() {
-  Shader imgShader = loadAssets() as Shader;
-  Paint paint = material.Paint()..shader = imgShader;
-  //..color = material.Colors.blueAccent;
-  GameScene scene = MyScene(paint);
+  GameScene scene = MyScene();
   Game game = Game(scene);
-  game.run();
+  scene.loadAssets();
+  game.start();
 }
